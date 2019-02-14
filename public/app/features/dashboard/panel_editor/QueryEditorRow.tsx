@@ -29,7 +29,11 @@ interface State {
   datasource: DataSourceApi | null;
   isCollapsed: boolean;
   angularScope: AngularQueryComponentScope | null;
+  range: TimeRange;
 }
+
+// Get current time range
+const getRange = (): TimeRange => getTimeSrv().timeRange();
 
 export class QueryEditorRow extends PureComponent<Props, State> {
   element: HTMLElement | null = null;
@@ -40,16 +44,24 @@ export class QueryEditorRow extends PureComponent<Props, State> {
     isCollapsed: false,
     angularScope: null,
     loadedDataSourceValue: undefined,
+    range: getRange(),
   };
 
   componentDidMount() {
     this.loadDatasource();
     this.props.panel.events.on('refresh', this.onPanelRefresh);
+    this.props.panel.events.on('time-range-updated', this.onRangeUpdate);
   }
 
   onPanelRefresh = () => {
     if (this.state.angularScope) {
-      this.state.angularScope.range = getTimeSrv().timeRange();
+      this.state.angularScope.range = getRange();
+    }
+  };
+
+  onRangeUpdate = () => {
+    if (!this.state.angularScope) {
+      this.setState({ range: getRange() });
     }
   };
 
@@ -107,6 +119,7 @@ export class QueryEditorRow extends PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.props.panel.events.off('refresh', this.onPanelRefresh);
+    this.props.panel.events.off('time-range-updated', this.onRangeUpdate);
 
     if (this.angularQueryEditor) {
       this.angularQueryEditor.destroy();
@@ -122,8 +135,8 @@ export class QueryEditorRow extends PureComponent<Props, State> {
   };
 
   renderPluginEditor() {
-    const { query, onChange } = this.props;
-    const { datasource } = this.state;
+    const { query, panel, onChange } = this.props;
+    const { datasource, range } = this.state;
 
     if (datasource.pluginExports.QueryCtrl) {
       return <div ref={element => (this.element = element)} />;
@@ -131,7 +144,16 @@ export class QueryEditorRow extends PureComponent<Props, State> {
 
     if (datasource.pluginExports.QueryEditor) {
       const QueryEditor = datasource.pluginExports.QueryEditor;
-      return <QueryEditor query={query} datasource={datasource} onChange={onChange} onRunQuery={this.onRunQuery} />;
+      return (
+        <QueryEditor
+          query={query}
+          datasource={datasource}
+          panel={panel}
+          range={range}
+          onChange={onChange}
+          onRunQuery={this.onRunQuery}
+        />
+      );
     }
 
     return <div>Data source plugin does not export any Query Editor component</div>;
