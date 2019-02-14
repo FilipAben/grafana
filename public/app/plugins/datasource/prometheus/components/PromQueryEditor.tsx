@@ -1,14 +1,15 @@
 import _ from 'lodash';
 import React, { PureComponent } from 'react';
-import { hot } from 'react-hot-loader';
 
 // Types
 import { FormLabel, Select, SelectOptionItem, Switch } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/ui/src/types';
+
 import { PrometheusDatasource } from '../datasource';
 import { PromQuery } from '../types';
 
 import PromQueryField from './PromQueryField';
+import PromLink from './PromLink';
 
 type Props = QueryEditorProps<PrometheusDatasource, PromQuery>;
 
@@ -91,39 +92,9 @@ export class PromQueryEditor extends PureComponent<Props, State> {
     this.props.onRunQuery();
   };
 
-  getExternalLink(): string {
-    const { datasource, panel, range } = this.props;
-    if (!range) {
-      return null;
-    }
-
-    const rangeDiff = Math.ceil((range.to.valueOf() - range.from.valueOf()) / 1000);
-    const endTime = range.to.utc().format('YYYY-MM-DD HH:mm');
-    const options = {
-      // TODO Should be the dynamically calculated interval from the panel ctrl
-      interval: datasource.interval,
-      scopedVars: panel.scopedVars,
-    };
-    // TODO update expr when template variables change
-    const query = datasource.createQuery(this.query, options, range.from.valueOf(), range.to.valueOf());
-    const expr = {
-      'g0.expr': query.expr,
-      'g0.range_input': rangeDiff + 's',
-      'g0.end_input': endTime,
-      'g0.step_input': query.step,
-      'g0.tab': 0,
-    };
-
-    const args = _.map(expr, (v, k) => {
-      return k + '=' + encodeURIComponent(v);
-    }).join('&');
-    return `${datasource.directUrl}/graph?${args}`;
-  }
-
   render() {
-    const { datasource, query } = this.props;
+    const { datasource, panel, query } = this.props;
     const { formatOption, instant, interval, intervalFactorOption, legendFormat } = this.state;
-    const externalLink = this.getExternalLink();
 
     return (
       <div>
@@ -178,16 +149,16 @@ export class PromQueryEditor extends PureComponent<Props, State> {
             <Select isSearchable={false} options={FORMAT_OPTIONS} onChange={this.onFormatChange} value={formatOption} />
             <Switch label="Instant" checked={instant} onChange={this.onInstantChange} />
 
-            {externalLink && <FormLabel width={10} tooltip="Link to Graph in Prometheus">
-              <a href={externalLink} target="_blank">
-              <i className="fa fa-share-square-o" /> Prometheus
-              </a>
-            </FormLabel>}
+            <FormLabel width={10} tooltip="Link to Graph in Prometheus">
+              <PromLink
+                datasource={datasource}
+                panel={panel}
+                query={this.query} // Use modified query
+                />
+            </FormLabel>
           </div>
         </div>
       </div>
     );
   }
 }
-
-export default hot(module)(PromQueryEditor);

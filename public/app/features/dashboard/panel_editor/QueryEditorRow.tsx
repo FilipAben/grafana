@@ -29,11 +29,7 @@ interface State {
   datasource: DataSourceApi | null;
   isCollapsed: boolean;
   angularScope: AngularQueryComponentScope | null;
-  range: TimeRange;
 }
-
-// Get current time range
-const getRange = (): TimeRange => getTimeSrv().timeRange();
 
 export class QueryEditorRow extends PureComponent<Props, State> {
   element: HTMLElement | null = null;
@@ -44,24 +40,16 @@ export class QueryEditorRow extends PureComponent<Props, State> {
     isCollapsed: false,
     angularScope: null,
     loadedDataSourceValue: undefined,
-    range: getRange(),
   };
 
   componentDidMount() {
     this.loadDatasource();
     this.props.panel.events.on('refresh', this.onPanelRefresh);
-    this.props.panel.events.on('time-range-updated', this.onRangeUpdate);
   }
 
   onPanelRefresh = () => {
     if (this.state.angularScope) {
-      this.state.angularScope.range = getRange();
-    }
-  };
-
-  onRangeUpdate = () => {
-    if (!this.state.angularScope) {
-      this.setState({ range: getRange() });
+      this.state.angularScope.range = getTimeSrv().timeRange();
     }
   };
 
@@ -119,7 +107,6 @@ export class QueryEditorRow extends PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.props.panel.events.off('refresh', this.onPanelRefresh);
-    this.props.panel.events.off('time-range-updated', this.onRangeUpdate);
 
     if (this.angularQueryEditor) {
       this.angularQueryEditor.destroy();

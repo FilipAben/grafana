@@ -53,7 +53,6 @@ export interface QueryEditorProps<DSType extends DataSourceApi, TQuery extends D
   datasource: DSType;
   panel?: PanelModel;
   query: TQuery;
-  range?: TimeRange;
   onRunQuery: () => void;
   onChange: (value: TQuery) => void;
 }

@@ -1,5 +1,5 @@
 import { PrometheusDatasource } from './datasource';
-import PromQueryEditor from './components/PromQueryEditor';
+import { PromQueryEditor } from './components/PromQueryEditor';
 import { PrometheusConfigCtrl } from './config_ctrl';
 
 import PrometheusStartPage from './components/PromStart';
