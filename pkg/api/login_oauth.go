@@ -172,6 +172,11 @@ func (hs *HTTPServer) OAuthLogin(ctx *models.ReqContext) {
 		return
 	}
 
+	if len(userInfo.Roles) == 0 {
+		hs.redirectWithError(ctx, login.ErrNoAccess)
+		return
+	}
+
 	extUser := &models.ExternalUserInfo{
 		AuthModule: "oauth_" + name,
 		OAuthToken: token,
@@ -181,6 +186,16 @@ func (hs *HTTPServer) OAuthLogin(ctx *models.ReqContext) {
 		Email:      userInfo.Email,
 		OrgRoles:   map[int64]models.RoleType{},
 		Groups:     userInfo.Groups,
+	}
+
+	if userInfo.Roles != nil {
+		for _, r := range userInfo.Roles {
+			extUser.OrgRoles[int64(r.Org)] = models.RoleType(r.Role)
+			if models.RoleType(r.Role) == "Admin" {
+				admin := true
+				extUser.IsGrafanaAdmin = &admin
+			}
+		}
 	}
 
 	if userInfo.Role != "" {

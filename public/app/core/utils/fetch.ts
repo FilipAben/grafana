@@ -11,6 +11,7 @@ export const parseInitFromOptions = (options: BackendSrvRequest): RequestInit =>
     method,
     headers,
     body,
+    credentials: 'include',
   };
 };
 

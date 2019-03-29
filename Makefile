@@ -128,9 +128,9 @@ build-docker-dev: ## Build Docker image for development (fast).
 	cp dist/grafana-latest.linux-x64.tar.gz packaging/docker
 	cd packaging/docker && docker build --tag grafana/grafana:dev .
 
-build-docker-full: ## Build Docker image for development.
+build-docker-full:
 	@echo "build docker container"
-	docker build --tag grafana/grafana:dev .
+	docker build --tag gcr.io/production-216112/grafana:latest .
 
 ##@ Services
 

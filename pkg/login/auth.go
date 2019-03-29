@@ -20,6 +20,7 @@ var (
 	ErrUserDisabled          = errors.New("User is disabled")
 	ErrAbsoluteRedirectTo    = errors.New("Absolute urls are not allowed for redirect_to cookie value")
 	ErrInvalidRedirectTo     = errors.New("Invalid redirect_to cookie value")
+	ErrNoAccess              = errors.New("No access")
 )
 
 var loginLogger = log.New("login")

@@ -95,7 +95,7 @@ module.exports = merge(common, {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       checkSyntacticErrors: true,
-      memoryLimit: 4096,
+      memoryLimit: 8192,
     }),
     new MiniCssExtractPlugin({
       filename: 'grafana.[name].[hash].css',

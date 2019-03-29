@@ -82,13 +82,21 @@ func (s *SocialGenericOAuth) IsOrganizationMember(client *http.Client) bool {
 	return false
 }
 
+type RoleJson struct {
+	Org  int    `json:"org"`
+	Role string `json:"role"`
+}
+
 type UserInfoJson struct {
 	Name        string              `json:"name"`
 	DisplayName string              `json:"display_name"`
+	FirstName   string              `json:"first_name"`
+	LastName    string              `json:"last_name"`
 	Login       string              `json:"login"`
 	Username    string              `json:"username"`
 	Email       string              `json:"email"`
 	Upn         string              `json:"upn"`
+	Roles       []RoleJson          `json:"grafana_roles"`
 	Attributes  map[string][]string `json:"attributes"`
 	rawJSON     []byte
 }
@@ -100,7 +108,7 @@ func (info *UserInfoJson) String() string {
 }
 
 func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
-	var data UserInfoJson
+	var data UserInfoJson = UserInfoJson{Roles: []RoleJson{}}
 	var err error
 
 	userInfo := &BasicUserInfo{}
@@ -122,6 +130,12 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 
 	if userInfo.Login == "" {
 		userInfo.Login = userInfo.Email
+	}
+
+	userInfo.Roles = []*UserRole{}
+
+	for _, r := range data.Roles {
+		userInfo.Roles = append(userInfo.Roles, &UserRole{Org: r.Org, Role: r.Role})
 	}
 
 	if !s.IsTeamMember(client) {
@@ -260,6 +274,9 @@ func (s *SocialGenericOAuth) extractName(data *UserInfoJson) string {
 
 	if data.DisplayName != "" {
 		return data.DisplayName
+	}
+	if data.FirstName != "" && data.LastName != "" {
+		return data.FirstName + " " + data.LastName
 	}
 
 	return ""

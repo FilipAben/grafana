@@ -13,6 +13,11 @@ import (
 	"github.com/grafana/grafana/pkg/util"
 )
 
+type UserRole struct {
+	Org  int
+	Role string
+}
+
 type BasicUserInfo struct {
 	Id      string
 	Name    string
@@ -21,6 +26,7 @@ type BasicUserInfo struct {
 	Company string
 	Role    string
 	Groups  []string
+	Roles   []*UserRole
 }
 
 type SocialConnector interface {
